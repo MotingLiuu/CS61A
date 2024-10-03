@@ -1,2 +1,2 @@
 # CS61A
- Solutons and material for CS61A
+My solutions for CS61A. Welcome to raise issues and discuss.
