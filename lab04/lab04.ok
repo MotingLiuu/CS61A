@@ -1,20 +1,20 @@
 {
     "name": "Lab 4",
-    "endpoint": "cal/cs61a/sp22/lab04",
+    "endpoint": "cal/cs61a/fa24/lab04",
     "src": [
-        "lab04.py",
-        "parsons_probs/line_stepper.py"
+        "lab04.py"
     ],
     "tests": {
         "lab*.py": "doctest",
-        "tests/*.py": "ok_test",
-        "parsons_probs/line_stepper.py:line_stepper": "doctest"
+        "tests/*.py": "ok_test"
     },
     "default_tests": [
-        "squared-virfib-wwpd",
-        "summation",
-        "paths",
-        "line_stepper"
+        "pokemon",
+        "divide",
+        "buy",
+        "distance",
+        "closer_city",
+        "check_city_abstraction"
     ],
     "protocols": [
         "restore",
@@ -23,12 +23,5 @@
         "grading",
         "analytics",
         "backup"
-    ],
-    "parsons": {
-        "pascal": {
-            "required": [
-                "line_stepper"
-            ]
-        }
-    }
+    ]
 }

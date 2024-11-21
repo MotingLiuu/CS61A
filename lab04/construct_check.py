@@ -77,7 +77,6 @@ _NAMES = {
     'YieldFrom': 'yield from',
 }
 
-
 def check(source_file, checked_funcs, disallow, source=None):
     """Checks that AST nodes whose type names are present in DISALLOW
     (an object supporting 'in') are not present in the function(s) named
@@ -90,7 +89,6 @@ def check(source_file, checked_funcs, disallow, source=None):
     checks for overtly recursive calls (i.e., calls of the form NAME(...) where
     NAME is an enclosing def."""
     return ExclusionChecker(disallow).check(source_file, checked_funcs, source)
-
 
 class ExclusionChecker(NodeVisitor):
     """An AST visitor that checks that certain constructs are excluded from
@@ -167,7 +165,7 @@ class ExclusionChecker(NodeVisitor):
         self._source_file = source_file
         self._func_nest = []
         if type(checked_funcs) is str:
-            self._checked_funcs = {checked_funcs}
+            self._checked_funcs = { checked_funcs }
         else:
             self._checked_funcs = set(checked_funcs)
         if disallow is not None:
