@@ -109,8 +109,15 @@ def join_link(s, separator):
             
 def partitions(n, m):
     '''return a linked list of partitions of n using parts of up to m. Each partition is represented as a linked list'''
-    
-
+    if n == 0:
+        return link(empty, empty)
+    elif n < 0 or m == 0:
+        return empty
+    else:
+        using_m = partitions(n - m, m)
+        with_m = apply_to_all_link(lambda s: link(m, s), using_m)
+        without_m = partitions(n, m - 1)
+        return extend_link(with_m, without_m)
 
 
 four = link(1, link(2, link(3, link(4, empty))))
