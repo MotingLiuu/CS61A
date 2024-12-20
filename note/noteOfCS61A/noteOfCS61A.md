@@ -24,17 +24,14 @@ suits = chinese
 这里的suits相当于chinese指向的序列的一个别名。对suits进行更改会影响chinese. The same list object is bound to `suits`  
 The behavior of mutable data is different from immutable data. With mutable data, methods called on one name can affect another name at the same time.
 
-e.g.  
-
+e.g.
 
 ![](image.png)
 
-  
 
 
 ![](image-1.png)
 
-  
 
 
 ![](image-2.png)
@@ -78,12 +75,10 @@ List comprehension always creates a new list. `unicodedata` moudule tracks the o
 
 **Tuple**  
 Built in `tuple` type, is an immutable sequence.  
-While it is not possible to change which elements are in a tuple, it is possible to change the value of a mutable element contained within a tuple.  
-
+While it is not possible to change which elements are in a tuple, it is possible to change the value of a mutable element contained within a tuple.
 
 ![](image-3.png)
 
-  
 也就是说tuple实际上存贮了一个指向对象的指针，不能对tuple存储的指针进行操作，但如果这个指针指向可变数据的话，可以对这个可变数据进行操作。操作后的变化会自然而然反映在tuple上。
 
 **Dictionaries**  
@@ -177,36 +172,26 @@ The `nonlocal` statement declares that whenever we change the binding of the nam
 
 ![](image-5.png)
 
-  
 
 
 ![](image-4.png)
 
-  
-首先在global中运行`make_withdraw()`函数，进入其frame  
-
+首先在global中运行`make_withdraw()`函数，进入其frame
 
 ![](image-6.png)
 
-  
-在frame中声明`balance`，并将其bind到20. 接着将`withdraw`和`return value`bind到函数object上。  
-
+在frame中声明`balance`，并将其bind到20. 接着将`withdraw`和`return value`bind到函数object上。
 
 ![](image-7.png)
 
-  
-返回Global的frame中，接着将`wd` bind 到返回值所指的object上  
-
+返回Global的frame中，接着将`wd` bind 到返回值所指的object上
 
 ![](image-8.png)
 
-  
-进入到f1，之后进入f2的frame中  
-
+进入到f1，之后进入f2的frame中
 
 ![](image-9.png)
 
-  
 这里对balance的更改也会影响到`make_withdraw()`中的`balance`
 
 python中赋值时隐式声明变量，无需单独操作。对于赋值时如果object是不可变类型，赋值操作会创建一个新的对象，并将变量名重新绑定到这个新的对象。 如果是可变类型，则会直接修改原对象。  
@@ -268,12 +253,10 @@ Only `wd` is associated with the frame for `make_withdraw` in which it was defin
 
 ### 2.4.6 The Cost of Non-Local Assignment
 
-When two names `wd` and `wd2` are both bound to a `withdraw` function, it does matter whether they are bound to the same function or different instance of that function.  
-
+When two names `wd` and `wd2` are both bound to a `withdraw` function, it does matter whether they are bound to the same function or different instance of that function.
 
 ![](image-10.png)
 
-  
 In this case, calling the function named by `wd2` changed the value of the function named by `wd`, because both names refer to the same function.
 
 Only function calls can introduce new frames. Assignment statements always change bindings in existing frames. In this case, unless `make_withdraw` is called twice, there can be only one binding for `balance`
@@ -411,7 +394,6 @@ check_balance(a)
 
 ![](image-12.png)
 
-  
 Constraint System between `Celsius` and `Fahrenheit`  
 The constrain between `c` and `f` can be thought of as  a network consisting of primitive `adder`, `multiplier` and `constant` constrains.
 
@@ -627,6 +609,14 @@ Fahrenheit = 77.0
 
 由于convert函数在运行的时候，约束条件会存储在celsius和fahrenheit下面，因此不会被销毁。而其他的constraint会存储multiplier，因此也不会被销毁。这样就完成了一个约束系统。
 
+## 2.3 Sequence
+
+### 2.3.6 Trees
+
+
+
+
+
 # Chapter 4
 
 ## 4.2 Implicit Sequence
@@ -658,8 +648,7 @@ a iterator can be obtained by calling the built-in `iter` function, the contents
 5
 ```
 
-Python signals that there is no more values avaiable by raising a `StopIteration` exception when `next` is called. This expection can be handled using a `try` statement.  
-
+Python signals that there is no more values avaiable by raising a `StopIteration` exception when `next` is called. This expection can be handled using a `try` statement.
 
 ![](image-13.png)
 
@@ -671,26 +660,21 @@ Calling `iter` on an iterator will return that iterator, **not a copy**. 相当�
 
 An iterable value is anything that can be passed to the built-in `iter` function.(including `strings`, `tuples`, `sets`, `dictionaries`, `iterators`)
 
-字典也可以迭代， 顺序是键值对加入字典时的顺序。如果字典由于添加或者删除键导致其结构改变，则所有迭代器都会失效。更改键值不会更改内容的顺序或者使迭代器无效。  
-
+字典也可以迭代， 顺序是键值对加入字典时的顺序。如果字典由于添加或者删除键导致其结构改变，则所有迭代器都会失效。更改键值不会更改内容的顺序或者使迭代器无效。
 
 ![](image-14.png)
 
 ### Built-in Iterators
 
 Several built-in functions take as arguments iterable values and return iterators.  
-`map` function:  
-
+`map` function:
 
 ![](image-15.png)
 
-  
-在使用next的时候才会call double_and_print进行计算  
-
+在使用next的时候才会call double_and_print进行计算
 
 ![](image-16.png)
 
-  
 使用list转换的时候，只会保存return的value  
 `filter` function returns an iterator over, `zip` and `reversed` functions also return iterators.
 
@@ -804,7 +788,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***  returned by a special class of function called ***generator***  function.
+A generator is an ***iterator***   returned by a special class of function called ***generator***   function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -933,4 +917,3 @@ s = Stream(1, lambda: Stream(2 + 3, lambda: Stream(9)))
 - `==` : return `True` if the content of two lists are same。
 - `is`: returrn `True` if the address are same.
 - `+`: add another list to the end of the first list.
-
