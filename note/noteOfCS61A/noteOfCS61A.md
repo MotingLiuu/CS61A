@@ -613,6 +613,139 @@ Fahrenheit = 77.0
 
 ### 2.3.6 Trees
 
+```python
+def tree(root_label, branches = []):
+    for branch in branches:
+        assert is_tree(branch), 'branches must be trees'
+    return [root_label] + list(branches)
+
+def label(tree):
+    return tree[0]
+
+def branches(tree):
+    return tree[1:]
+
+def is_tree(tree):
+    if type(tree) != list or len(tree) < 1:
+        return False
+    for branch in branches(tree):
+        if not is_tree(branch):
+            return False
+    return True
+    
+def is_leaf(tree):
+    return not branches(tree)
+```
+
+A tree is a object only containing list object.  A tree is a recursive object which means the except the root of the tree, other elements in the tree are also tree objectives. 通过 `is_tree()` 可以看出，tree是一个长度大于等于一的list，构成可以为一个包含单个值的list或者包含一个值和其他树的list。 
+
+
+
+**Fibonacci tree**
+
+```python
+def fib_tree(n):
+    if n == 0 or n == 1:
+        return tree(n)
+    else:
+        left, right = fib_tree(n - 2), fib_tree(n - 1)
+        fib_n = label(left) + label(right)
+        return tree(fib_n, [left, right])
+```
+
+如果`n==0` 或者 `n==1`直接返回一个 `label`为 `n`的 `tree` 如果不是，则将生成两个`tree`,`n-2`和 `n-1`之后将两个`tree`作为branches，label作为两个tree的label相加，返回这个tree。
+
+**Count leaves**
+
+```python
+def count_leaves(tree):
+    if is_leaf(tree):
+        return 1
+    else:
+        branch_counts = [count_leaves(b) for b in branches(tree)]
+        return sum(branch_counts)
+```
+
+如果这个树没有branches就返回1，其余情况返回所有branches的leaves之和
+
+**Partition trees**
+
+A partition tree for `n` using parts up to size `m` is a binary tree that represents the choices taken during computation.
+
+```python
+def partition_tree(n, m):
+    if n == 0:
+        return tree(True)
+    elif n < 0 or m == 0:
+        return tree(False)
+    else:
+        left = partition_tree(n - m, m)
+        right = partition_tree(n, m - 1)
+        return tree(m, [left, right])
+```
+
+print the partitions
+
+```python
+def print_parts(tree, partition = []):
+    if is_leaf(tree):
+        if label(tree):
+            print('+'.join(partition))
+        else:
+            left, right = branches(tree)
+            m = str(label(tree))
+            print_parts(left, partition + [m])
+            print_parts(right, partition)
+```
+
+这个函数妙在使用`paitition + [m]`返回了一个新的list对象，而不是在原有的partition上进行更改。巧妙地避免了所有的分支都对一个partition进行修改的问题。
+
+`right_binarize()`
+
+```python
+def right_binarize(tree):
+    if is_leaf(tree):
+        return tree
+    if len(tree) == 2:
+        return tree
+    if len(tree) > 2:
+        return [label(tree), right_binarize(tree[1:])]
+```
+
+**Linked List**
+
+Represent List using nested pairs.
+
+![](tmpCBA2.png)
+
+Advantages:
+
+1. do not restricted to continuous space
+2. can add items easily because of reason 1
+
+**Recursive manipulation**
+
+```python
+empty = 'empty'
+
+def is_link(s):
+    return s == empty or (len(s) == 2 and is_link(s[1]))
+
+def link(first, rest):
+    assert is_link(rest), 'rest must be a linked list'
+    return [first, rest]
+
+def first(s):
+    assert is_link(s), 'first only applies to linked lists'
+    assert s != empty, 'empty linked list has no first element'
+    return s[0]
+
+def rest(s):
+    assert is_link(s), 'rest only applies to linked lists'
+    assert s != empty, 'empty linked list has no rest'
+    return s[1]
+```
+
 
 
 
@@ -788,7 +921,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***   returned by a special class of function called ***generator***   function.
+A generator is an ***iterator***     returned by a special class of function called ***generator***     function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
