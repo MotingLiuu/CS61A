@@ -748,7 +748,75 @@ def rest(s):
 
 
 
+## 2.5 Object-Oriented Programming
 
+```python
+class Account:
+    def __init__(self, account_holder):
+        self.balance = 0
+        self.holder = account_holder
+```
+
+`self` is bound to the newly created `Account` object. `account_holder` is bound to the argument passed to the class when it is called to be instantiated.
+
+
+
+Each method definition includes a special first parameter `self`, which is bound to the objecton which the method is invoked. 
+
+When a method is invoked via dot notation, the object itself plays a dual role.
+
+1. determines what the name `withdraw` means; `withdraw` is not a name in the environment, but instead a name that is local to the `Account` class. 
+2. It is bound to the first parameter `self` when the `withdraw` method is invoked.
+
+
+
+**Dot expression**
+
+```python
+<expression>.<name>
+```
+
+The `<expression>` can be any valid Python expression, but the `<name>` must be a simple name (not an expression that evaluates to a name). 
+
+But we can look up an attribute using expression with `getattr`
+
+```python
+getattr(account1, `balance`)
+```
+
+`getattr` is equivalent of dot notation.
+
+
+
+**Methods and functions**
+
+Python distinguishes between ***functions*** and ***bound method*** . A bound method value is already associated with its first argument
+
+As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
+
+```python
+>>> type(Account.deposit)
+<class 'function'>
+>>> type(account1.deposit)
+<class 'method'>
+```
+
+The first is a standard two-argument function with parameters `self` and `amount`, the second is a one-argument method, where `self` will be bound to object that named `account1` automatically. Both of these values, whether function values or bound method values, are associated with the same `deposit` function body.
+
+We can call `deposit` in two ways
+
+```python
+>>> Account.deposit(account1, 1001)
+1001
+>>> account1.deposit(1000)
+2011
+```
+
+The function getattr behaves exactly like dot notation: if its first argument is an object but the name is a method defined in the class, then getattr returns a bound method value. On the other hand, if the first argument is a class, then getattr returns the attribute value directly, which is a plain function.
+
+
+
+There are instance variables and methods that are related to the maintenance and consistency of an object that we don't want user of the object to see or use. They are not part of the abstraction defined by a class, but instead part of the implementation. The name of the method should only be accessed within methods of the class itself should starts within an underscore.
 
 # Chapter 4
 
@@ -921,7 +989,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***      returned by a special class of function called ***generator***      function.
+A generator is an ***iterator***       returned by a special class of function called ***generator***       function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
