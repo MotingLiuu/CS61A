@@ -637,7 +637,7 @@ def is_leaf(tree):
     return not branches(tree)
 ```
 
-A tree is a object only containing list object.  A tree is a recursive object which means the except the root of the tree, other elements in the tree are also tree objectives. 通过 `is_tree()` 可以看出，tree是一个长度大于等于一的list，构成可以为一个包含单个值的list或者包含一个值和其他树的list。 
+A tree is a object only containing list object.  A tree is a recursive object which means the except the root of the tree, other elements in the tree are also tree objectives. 通过 `is_tree()` 可以看出，tree是一个长度大于等于一的list，构成可以为一个包含单个值的list或者包含一个值和其他树的list。
 
 
 
@@ -921,7 +921,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***     returned by a special class of function called ***generator***     function.
+A generator is an ***iterator***      returned by a special class of function called ***generator***      function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -1003,6 +1003,24 @@ class Positives:
         self.next_positive += 1
         return result
 ```
+
+**The return of yield**
+
+```python
+def partition_gen(n, m):
+    assert n > 0 and m > 0
+    if n == m:
+        yield [m]
+    if n - m > 0:
+        yield [[m] + partition for partition in partition_gen(n - m, m)]
+    if m > 1:
+        yield [partition for partition in partition_gen(n, m - 1)]
+        
+for partition in (partition_gen(6, 4)):
+    print(partition)
+```
+
+在这个例子中python会输出一个嵌套列表，这是因为iterator每次都会返回一个列表，使用for对iterator对象进行递归并不会递归到列表的内部，而是这个列表本身。例如使用 `yield [1, 2, 3]` 之后对iterator进行递归，则iterator返回的对象是`[1, 2, 3]`而不是`1`
 
 ### 4.2.10 Python Streams
 
