@@ -1,0 +1,4 @@
+'hailstone-correct', (0, 66)
+'merge-correct', (512, 66)
+'stair_ways-correct', (1024, 66)
+'yield_paths-correct', (1536, 66)
