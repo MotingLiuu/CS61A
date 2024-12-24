@@ -761,12 +761,93 @@ class Account:
 
 
 
-Each method definition includes a special first parameter `self`, which is bound to the objecton which the method is invoked. 
+Each method definition includes a special first parameter `self`, which is bound to the objecton which the method is invoked.
 
 When a method is invoked via dot notation, the object itself plays a dual role.
 
-1. determines what the name `withdraw` means; `withdraw` is not a name in the environment, but instead a name that is local to the `Account` class. 
+1. determines what the name `withdraw` means; `withdraw` is not a name in the environment, but instead a name that is local to the `Account` class.
 2. It is bound to the first parameter `self` when the `withdraw` method is invoked.
+
+### 2.5.4 Class Attibutes(class variable or static variable)
+
+Attributes are associated with the class itself, rather than any individual instance of the class.
+
+Class attributes are created by assignment statement in the suite of a `class` statement, outside of method definition.
+
+```python
+>>> class Account:
+        interest = 0.02            # A class attribute
+        def __init__(self, account_holder):
+            self.balance = 0
+            self.holder = account_holder
+        # Additional methods would be defined here
+```
+
+The attribute can be accessed from any instance of the class
+
+```python
+>>> spock_account = Account('Spock')
+>>> kirk_account = Account('Kirk')
+>>> spock_account.interest
+0.02
+>>> kirk_account.interest
+0.02
+```
+
+A singgle assignment statement to a class attribute changes the value of the attribute for all instances of the class
+
+```python
+>>> Account.interest = 0.04
+>>> spock_account.interest
+0.04
+>>> kirk_account.interest
+0.04
+```
+
+**Attribute names**
+
+```python
+<expression>.<name>
+```
+
+To evaluate a dot expression:
+
+1. Evaluate the <expression> to the left of the dot, which yields the *object* of the dot expression.
+2. <name> is matched against the instance attributes of that object; if an attribute with that name exists, its value is returned.
+3. If <name> does not appear among instance attributes, then <name> is looked up in the class, which yields a class attribute value.
+4. That value is returned unless it is a function, in which case a bound method is returned instead.
+
+**Attribute assignment**
+
+If the object is an instance, the assignment sets an instance attribute. If the object is a class, then assignment sets a class attribute.
+
+```python
+>>> kirk_account.interest = 0.08
+```
+
+This will create a new instance attribute that has the same name as the exsting class attribute.
+
+```python
+>>> kirk_account.interest
+0.08
+```
+
+The class attribute `interest` retains its original value
+
+```python
+>>> spock_account.interest
+0.04
+```
+
+changes to the class attribute `interest` will affect `spock_account`, but the instance attribute for `kirk_account` will be unaffected
+
+```python
+>>> Account.interest = 0.05  # changing the class attribute
+>>> spock_account.interest     # changes instances without like-named instance attributes
+0.05
+>>> kirk_account.interest     # but the existing instance attribute is unaffected
+0.08
+```
 
 
 
@@ -776,7 +857,7 @@ When a method is invoked via dot notation, the object itself plays a dual role.
 <expression>.<name>
 ```
 
-The `<expression>` can be any valid Python expression, but the `<name>` must be a simple name (not an expression that evaluates to a name). 
+The `<expression>` can be any valid Python expression, but the `<name>` must be a simple name (not an expression that evaluates to a name).
 
 But we can look up an attribute using expression with `getattr`
 
@@ -790,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions*** and ***bound method*** . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***  and ***bound method***  . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -817,6 +898,112 @@ The function getattr behaves exactly like dot notation: if its first argument 
 
 
 There are instance variables and methods that are related to the maintenance and consistency of an object that we don't want user of the object to see or use. They are not part of the abstraction defined by a class, but instead part of the implementation. The name of the method should only be accessed within methods of the class itself should starts within an underscore.
+
+
+
+## 2.5.5 Inheritance
+
+```python
+>>> class Account:
+        """A bank account that has a non-negative balance."""
+        interest = 0.02
+        def __init__(self, account_holder):
+            self.balance = 0
+            self.holder = account_holder
+        def deposit(self, amount):
+            """Increase the account balance by amount and return the new balance."""
+            self.balance = self.balance + amount
+            return self.balance
+        def withdraw(self, amount):
+            """Decrease the account balance by amount and return the new balance."""
+            if amount > self.balance:
+                return 'Insufficient funds'
+            self.balance = self.balance - amount
+            return self.balance
+```
+
+Python can add some attributes to an instance after construction
+
+```python
+account1 = Account('P1')
+account2 = Account('P2')
+account1.interest = 0.1
+account1.att = 'att1'
+
+print(account1.interest, account2.interest)
+print(account1.att)
+
+0.1 0.02
+att1
+```
+
+inheritance by placing an expression that evaluates to the base class in parentheses after the class name
+
+```python
+>>> class CheckingAccount(Account):
+        """A bank account that charges for withdrawals."""
+        withdraw_charge = 1
+        interest = 0.01
+        def withdraw(self, amount):
+            return Account.withdraw(self, amount + self.withdraw_charge)
+```
+
+```python
+>>> checking = CheckingAccount('Sam')
+>>> checking.deposit(10)
+10
+>>> checking.withdraw(5)
+4
+>>> checking.interest
+0.01
+```
+
+`checking.deposit` evaluates to a bound method, which was defined in the `Account` class.  
+
+When Python resolves a name in dot expression that is not an attribute of the instance, it lokks up the name in the class. To look up a name in a class:
+
+1. if it names an attribute in the class, return the attribute value.
+2. Otherwise, look up the name in the base class, if there is one
+
+在 `deposit` 的例子中，Python 首先会在实例上查找名称，然后在 `CheckingAccount` 类中查找，最后在 `Account` 类中查找到 `deposit` 的定义。根据点表达式的求值规则，由于 `deposit` 是一个在类中查找到的函数，对于 `checking` 实例来说，该点表达式求值为一个绑定方法（bound method）。该方法接收参数 `10`，会调用 `deposit` 方法，并将 `self` 绑定到 `checking` 对象，将 `amount` 绑定到 `10`。
+
+类中定义的函数并不属于实例instance，而是属于类本身class。当通过实例instance调用的时候，由于instance中并无此attribute，所以会向class中逐层查找。找到后，调用类中的方法，并将对象本身绑定到类方法的self上。
+
+![](tmpA74B.png)
+
+Each arrow points from a subclass to a base class.
+
+Python resolves names from left to right, then upwards. In this example, Python checks for an attribute name in the following classes, in order, until an attribute with that name is found:
+
+AsSeenOnTVAccount, CheckingAccount, SavingsAccount, Account, object
+
+## 2.5.7 Multiple Inheritance
+
+```python
+class SavingsAccount(Account):
+        deposit_charge = 2
+        def deposit(self, amount):
+            return Account.deposit(self, amount - self.deposit_charge)
+            
+class AsSeenOnTVAccount(CheckingAccount, SavingsAccount):
+        def __init__(self, account_holder):
+            self.holder = account_holder
+            self.balance = 1           # A free dollar!
+            
+>>> such_a_deal = AsSeenOnTVAccount("John")
+>>> such_a_deal.balance
+1
+>>> such_a_deal.deposit(20)            # $2 fee from SavingsAccount.deposit
+19
+>>> such_a_deal.withdraw(5)            # $1 fee from CheckingAccount.withdraw
+13
+```
+
+When the reference is ambiguous, such as the reference to the `withdraw` method is defined in both `Account` and `CheckingAccount`.
+
+![](tmpCBA2.png)
+
+
 
 # Chapter 4
 
@@ -989,7 +1176,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***       returned by a special class of function called ***generator***       function.
+A generator is an ***iterator***        returned by a special class of function called ***generator***        function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
