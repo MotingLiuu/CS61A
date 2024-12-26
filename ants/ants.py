@@ -53,6 +53,7 @@ class Insect:
     next_id = 0  # Every insect gets a unique id number
     damage = 0
     # ADD CLASS ATTRIBUTES HERE
+    is_waterproof = False
 
     def __init__(self, health, place=None):
         """Create an Insect with a health amount and a starting PLACE."""
@@ -100,6 +101,7 @@ class Ant(Insect):
     implemented = False  # Only implemented Ant classes should be instantiated
     food_cost = 0
     is_container = False
+    doubled = False
     # ADD CLASS ATTRIBUTES HERE
 
     def __init__(self, health=1):
@@ -142,6 +144,8 @@ class Ant(Insect):
         """Double this ants's damage, if it has not already been doubled."""
         # BEGIN Problem 12
         "*** YOUR CODE HERE ***"
+        self.damage = 2 * self.damage
+        self.doubled = True
         # END Problem 12
 
 
@@ -403,10 +407,21 @@ class Water(Place):
         its health to 0."""
         # BEGIN Problem 10
         "*** YOUR CODE HERE ***"
+        super().add_insect(insect)
+        if insect.is_waterproof is not True:
+            insect.reduce_health(insect.health)
         # END Problem 10
 
 # BEGIN Problem 11
 # The ScubaThrower class
+class ScubaThrower(ThrowerAnt):
+    name = 'Scuba'
+    is_waterproof = True
+    implemented = True
+    food_cost = 6
+    
+    def __init__(self, health=1):
+        super().__init__(health)
 # END Problem 11
 
 
@@ -417,15 +432,32 @@ class QueenAnt(ThrowerAnt):
     food_cost = 7
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 12
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 12
-
+    def get_behind(self):
+        behind_ants = []
+        curr_place = self.place
+        while curr_place.exit != None:
+            curr_place = curr_place.exit
+            if curr_place.ant != None:
+                curr_ant = curr_place.ant
+                behind_ants.append(curr_ant)
+                if curr_ant.is_container:
+                    if curr_ant.ant_contained != None:
+                        behind_ants.append(curr_ant.ant_contained)
+        return behind_ants
+    
     def action(self, gamestate):
         """A queen ant throws a leaf, but also doubles the damage of ants
         in her tunnel.
         """
         # BEGIN Problem 12
         "*** YOUR CODE HERE ***"
+        super().action(gamestate)
+        behind_ants = self.get_behind()
+        for ant in behind_ants:
+            if ant.doubled is not True:
+                ant.double()
         # END Problem 12
 
     def reduce_health(self, amount):
@@ -434,6 +466,9 @@ class QueenAnt(ThrowerAnt):
         """
         # BEGIN Problem 12
         "*** YOUR CODE HERE ***"
+        super().reduce_health(amount)
+        if self.health <= 0:
+            ants_lose()
         # END Problem 12
 
 
