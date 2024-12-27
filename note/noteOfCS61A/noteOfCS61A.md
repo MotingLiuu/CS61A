@@ -871,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions***  and ***bound method***  . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***   and ***bound method***   . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -958,7 +958,7 @@ inheritance by placing an expression that evaluates to the base class in parenth
 0.01
 ```
 
-`checking.deposit` evaluates to a bound method, which was defined in the `Account` class.  
+`checking.deposit` evaluates to a bound method, which was defined in the `Account` class.
 
 When Python resolves a name in dot expression that is not an attribute of the instance, it lokks up the name in the class. To look up a name in a class:
 
@@ -1002,6 +1002,434 @@ class AsSeenOnTVAccount(CheckingAccount, SavingsAccount):
 When the reference is ambiguous, such as the reference to the `withdraw` method is defined in both `Account` and `CheckingAccount`.
 
 ![](tmpCBA2.png)
+
+
+
+## 2.7 Object Abstraction
+
+**Generic function**
+
+Three different techniques for implementing generic functions:
+
+1. shared interfaces
+2. type dispatching
+3. type coercion
+
+### 2.7.1 String Conversion
+
+Python stipulates that all objects should produce two different string representations
+
+1. Human-interpretable text
+2. Python-interpretable expression
+
+The constructor function for strings, `str`, returns a human-readable string. The `repr` function returns a Python expression that evaluates to an equal object.
+
+```python
+repr(object) -> string
+
+Return the canonical string representation of the object.
+For most object types, eval(repr(object)) == object
+```
+
+Every object is an instance of some particular class.
+
+The result of calling `repr` on the value of an expression is what Python prints in an interactive session.
+
+```python
+>>> 12e12
+12000000000000.0
+>>> print(repr(12e12))
+12000000000000.0
+```
+
+In cases where no representation exists that evaluates to the original value, Python typically produces a description surrounded by angled brackets.
+
+```python
+>>> repr(min)
+'<built-in function min>'
+```
+
+`str` constructor often coincides with `repr`, but provides a more interpretable text representation in some class.
+
+```python
+>>> from datetime import date
+>>> tues = date(2011, 9, 12)
+>>> repr(tues)
+'datetime.date(2011, 9, 12)'
+>>> str(tues)
+'2011-09-12'
+```
+
+`repr` should apply correctly to all data types even those without `repr` method.  The `repr` function always invokes a method called `__repr__` on its argument.
+
+```python
+>>> tues.__repr__()
+'datetime.date(2011, 9, 12)'
+```
+
+`str` constructor is implemented in a similar manner: it invokes a method called `__str__` on its argument
+
+```py
+>>> tues.__str__()
+'2011-09-12'
+```
+
+Certain functions should apply to multiple data types. Moreover, one way to create such a function is to use a shared attribute name with a different definition in each class.
+
+
+
+### 2.7.2 Special Methods
+
+In Python, certain special names are invoked by the Python interpreter in special circumstances. The `__init__` method of a class is automatically invoked whenever an object is constructed. The `__str__` method is invoked automatically when printing, and `__repr__` is invoked in an interactive session to display values.
+
+
+
+Special names:
+
+1. **True and false values**
+
+   All objects in Python have a truth value. Objects of user-defined classes are considered to be true, but the special `__bool__` method can be used to override this behavior. If an object defines the `__bool__` method, then Python calls that method to determine its truth value.
+
+   e.g.
+
+   account with 0 balance should be false
+
+   ```py
+   Account.__bool__ = lambda self: self.balance != 0
+   ```
+
+
+Call `bool` constructor to see the truth value of an object
+
+2. **Sequence operations**
+
+   ```py
+   >>> len('Go Bears!')
+   9
+   ```
+
+
+	`len` invokes the `__len__` method of its argument to determine its length.
+
+	Python use a sequence's length to determine its truth value, if it does not provide a `__bool__` method. Empty sequences are false, while non-empty sequences are true.
+
+	`__getitem__` method is invoked by the element selection operator.
+
+```py
+>>> 'Go Bears!'[3]
+'B'
+>>> 'Go Bears!'.__getitem__(3)
+'B'
+```
+
+3. **Callable objects**
+
+   Python allows to define objects that can be "called" like functions by including a `__call__` method. 
+
+   ```py
+   >>> def make_adder(n):
+           def adder(k):
+               return n + k
+           return adder
+   >>> add_three = make_adder(3)
+   >>> add_three(4)
+   7
+   ```
+
+
+	We can also create a `add_three` using object.
+
+```py
+>>> class Adder(object):
+        def __init__(self, n):
+            self.n = n
+        def __call__(self, k):
+            return self.n + k
+>>> add_three_obj = Adder(3)
+>>> add_three_obj(4)
+7
+```
+
+The `Adder` class behaves like the `make_adder` higher-order function, and the `add_three_obj` object behaves like the `add_three` function.
+
+4. **Arithmetic**
+
+   To evaluate expressions that contain the `+` operator, Python checks for special method on both the left and right operands of the expression.
+
+   1. checks for an `__add__` method on the value of the left operand
+   2. checks for an `__radd__` method on the value of the right operand
+
+   If either is found, that method is invoked with the value of the other operand as its argument.
+
+
+
+
+### 2.7.3 Multiple Representations
+
+There might be more than one useful representation for a data object, and we might like to design systems that can deal with multiple representations(like complex number can be represented in two almost equivalent ways. We want functions works with either representatin.)
+
+```py
+>>> class Number:
+        def __add__(self, other):
+            return self.add(other)
+        def __mul__(self, other):
+            return self.mul(other)
+```
+
+This number class does not have an `__init__` method. The purpose of `Number` is not to be instantiated directly, but instead to serve as a superclass of various specific number classes. 
+
+The `Complex` class inherits from `Number` and describe arithmetic for complex numbers.
+
+```py
+>>> class Complex(Number):
+        def add(self, other):
+            return ComplexRI(self.real + other.real, self.imag + other.imag)
+        def mul(self, other):
+            magnitude = self.magnitude * other.magnitude
+            return ComplexMA(magnitude, self.angle + other.angle)
+```
+
+This implementation assumes that two classes exist for complex numbers, correspond to their two natural representations:
+
+- `ComplexRI` constructs a complex number from real and imaginary parts.
+- `ComplexMA` constructs a complex number from a magnitude and angle.
+
+**Interfaces**
+
+Object attributes, which are a form of message passing, allows different data types to respond to the same message in different ways. An interface is a set of shared attribute names, along with a specification of their behavior. In the case of complex numbers, the interface needed to implement arithmetic consists of four attributes: `real`, `imag`, `magnitude` and `angle`
+
+For complex arithmetic to be correct, these attributes must be consistent. The rectangular `(real, imag)` and the polar coordinates `(magnitude, angle)` must describe the same point on the complex plane. The `Complex` class implicity defines this interface by determing how these attributes are used to `add` and `mul` complex numbers.
+
+两种不同的complex number class，但是实现了共同的接口（interface），所以两类complex number可以以不同的方式相应同一条消息。  
+
+**Properties**
+
+The requirement that two or more attribute values maintain a fixed relationship with each other is a new problem. One solution is to store attribute values for only representation and compute the other representation whenever it is needed.
+
+Python can compute attributes on the fly from zero-argument functions. The `@property` decorator allows functions to be called without call expression syntax (paretheses following an expression). 
+
+The `ComplexRI` class stores `real` and `imag` attributes and computes `magnitude` and `angle` on demand.
+
+```py
+>>> from math import atan2
+>>> class ComplexRI(Complex):
+        def __init__(self, real, imag):
+            self.real = real
+            self.imag = imag
+        @property
+        def magnitude(self):
+            return (self.real ** 2 + self.imag ** 2) ** 0.5
+        @property
+        def angle(self):
+            return atan2(self.imag, self.real)
+        def __repr__(self):
+            return 'ComplexRI({0:g}, {1:g})'.format(self.real, self.imag)
+```
+
+all four attributes needed for complex arithmetic can be accessed without any call expression, and change to `real` or `img` are reflected in the `magnitude` and `angle`
+
+```py
+>>> ri = ComplexRI(5, 12)
+>>> ri.real
+5
+>>> ri.magnitude
+13.0
+>>> ri.real = 9
+>>> ri.real
+9
+>>> ri.magnitude
+15.0
+```
+
+The `ComplexMA` class stores `magnitude` and `angle` but computes `real` and `img` whenever those attributes are looked up
+
+```py
+>>> from math import sin, cos, pi
+>>> class ComplexMA(Complex):
+        def __init__(self, magnitude, angle):
+            self.magnitude = magnitude
+            self.angle = angle
+        @property
+        def real(self):
+            return self.magnitude * cos(self.angle)
+        @property
+        def imag(self):
+            return self.magnitude * sin(self.angle)
+        def __repr__(self):
+            return 'ComplexMA({0:g}, {1:g} * pi)'.format(self.magnitude, self.angle/pi)
+```
+
+```py
+>>> ma = ComplexMA(2, pi/2)
+>>> ma.imag
+2.0
+>>> ma.angle = pi
+>>> ma.real
+-2.0
+```
+
+```py
+>>> from math import pi
+>>> ComplexRI(1, 2) + ComplexMA(2, pi/2)
+ComplexRI(1, 4)
+>>> ComplexRI(0, 1) * ComplexRI(0, 1)
+ComplexMA(1, 1 * pi)
+```
+
+### 2.7.4 Generic Functions
+
+Execpt sharing interface, the generic functions can be implemented by
+
+1. type dispatching
+2. type coercion
+
+superclass只定义了接口interface，之后任何实现了这个接口的subclass都可以进行相应的抽象运算
+
+```py
+>>> from fractions import gcd
+>>> class Rational(Number):
+        def __init__(self, numer, denom):
+            g = gcd(numer, denom)
+            self.numer = numer // g
+            self.denom = denom // g
+        def __repr__(self):
+            return 'Rational({0}, {1})'.format(self.numer, self.denom)
+        def add(self, other):
+            nx, dx = self.numer, self.denom
+            ny, dy = other.numer, other.denom
+            return Rational(nx * dy + ny * dx, dx * dy)
+        def mul(self, other):
+            numer = self.numer * other.numer
+            denom = self.denom * other.denom
+            return Rational(numer, denom)
+```
+
+This class implemented the interface of `Number` superclass by including `add` and `mul` methods.
+
+```py
+>>> Rational(2, 5) + Rational(1, 10)
+Rational(1, 2)
+>>> Rational(1, 4) * Rational(2, 3)
+Rational(1, 6
+```
+
+**Type dispatching**
+
+One way to implement cross-type operations is to select behavior based on the types of the arguments to a function or method. 
+
+The built-in function `isinstance` takes an object and a class, returns true if the object has a class that either is or inherits from the given class
+
+```py
+>>> c = ComplexRI(1, 1)
+>>> isinstance(c, ComplexRI)
+True
+>>> isinstance(c, Complex)
+True
+>>> isinstance(c, ComplexMA)
+False
+```
+
+e.g.
+
+```py
+>>> def is_real(c):
+        """Return whether c is a real number with no imaginary part."""
+        if isinstance(c, ComplexRI):
+            return c.imag == 0
+        elif isinstance(c, ComplexMA):
+            return c.angle % pi == 0
+>>> is_real(ComplexRI(1, 1))
+False
+>>> is_real(ComplexMA(2, pi))
+True
+```
+
+we can also use `type_tag` to perform type dispatching
+
+Combine complex and rational numbers
+
+```py
+>>> def add_complex_and_rational(c, r):
+        return ComplexRI(c.real + r.numer/r.denom, c.imag)
+```
+
+```py
+>>> def mul_complex_and_rational(c, r):
+        r_magnitude, r_angle = r.numer/r.denom, 0
+        if r_magnitude < 0:
+            r_magnitude, r_angle = -r_magnitude, pi
+        return ComplexMA(c.magnitude * r_magnitude, c.angle + r_angle)
+```
+
+```py
+>>> def add_rational_and_complex(r, c):
+        return add_complex_and_rational(c, r)
+>>> def mul_rational_and_complex(r, c):
+        return mul_complex_and_rational(c, r)
+```
+
+So the interface of `Number` can be writted as:
+
+1. if two arguments have the same type tag, then it assumes that `add` method of the first can take the second as argument.
+2. Otherwise, it checks whether a dictionary of cross-type implementations, called `adder`
+
+   contains a function that can add argument of those type tags. If there is such a fucntion, the `cross_apply` method finds and applies it.
+
+
+```py
+>>> class Number:
+        def __add__(self, other):
+            if self.type_tag == other.type_tag:
+                return self.add(other)
+            elif (self.type_tag, other.type_tag) in self.adders:
+                return self.cross_apply(other, self.adders)
+        def __mul__(self, other):
+            if self.type_tag == other.type_tag:
+                return self.mul(other)
+            elif (self.type_tag, other.type_tag) in self.multipliers:
+                return self.cross_apply(other, self.multipliers)
+        def cross_apply(self, other, cross_fns):
+            cross_fn = cross_fns[(self.type_tag, other.type_tag)]
+            return cross_fn(self, other)
+        adders = {("com", "rat"): add_complex_and_rational,
+                  ("rat", "com"): add_rational_and_complex}
+        multipliers = {("com", "rat"): mul_complex_and_rational,
+                       ("rat", "com"): mul_rational_and_complex}
+```
+
+**Coercion**
+
+The different data types are not completely independent, and there may be ways by which objects of one type may be viewed as being of another type(coercion). 
+
+define a coercion function, which transforms a rational number to a complex number with zero imaginary part
+
+```py
+>>> def rational_to_complex(r):
+        return ComplexRI(r.numer/r.denom, 0)
+```
+
+```py
+>>> class Number:
+        def __add__(self, other):
+            x, y = self.coerce(other)
+            return x.add(y)
+        def __mul__(self, other):
+            x, y = self.coerce(other)
+            return x.mul(y)
+        def coerce(self, other):
+            if self.type_tag == other.type_tag:
+                return self, other
+            elif (self.type_tag, other.type_tag) in self.coercions:
+                return (self.coerce_to(other.type_tag), other)
+            elif (other.type_tag, self.type_tag) in self.coercions:
+                return (self, other.coerce_to(self.type_tag))
+        def coerce_to(self, other_tag):
+            coercion_fn = self.coercions[(self.type_tag, other_tag)]
+            return coercion_fn(self)
+        coercions = {('rat', 'com'): rational_to_complex}
+```
+
+
 
 
 
@@ -1176,7 +1604,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***        returned by a special class of function called ***generator***        function.
+A generator is an ***iterator***         returned by a special class of function called ***generator***         function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
