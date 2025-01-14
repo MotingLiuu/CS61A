@@ -203,7 +203,11 @@ def two_list(vals, counts):
     Link(1, Link(1, Link(3, Link(3, Link(2)))))
     """
     "*** YOUR CODE HERE ***"
-
+    link = Link.empty
+    for item, count in zip(vals[::-1], counts[::-1]):
+        for step in range(count):
+            link = Link(item, link)
+    return link
 
 class Link:
     """A linked list.
