@@ -50,13 +50,20 @@ class VendingMachine:
     def __init__(self, product, price):
         """Set the product and its price, as well as other instance attributes."""
         "*** YOUR CODE HERE ***"
-
+        self.product = product
+        self.price = price
+        self.stock = 0
+        self.fund = 0
+        
     def restock(self, n):
         """Add n to the stock and return a message about the updated stock level.
 
         E.g., Current candy stock: 3
         """
         "*** YOUR CODE HERE ***"
+        self.stock += n
+        message = f'Current {self.product} stock: {self.stock}'
+        return message
 
     def add_funds(self, n):
         """If the machine is out of stock, return a message informing the user to restock
@@ -69,6 +76,13 @@ class VendingMachine:
         E.g., Current balance: $4
         """
         "*** YOUR CODE HERE ***"
+        self.fund += n
+        if self.stock == 0:
+            message = f'Nothing left to vend. Please restock. Here is your ${self.fund}.'
+            self.fund = 0
+        else:
+            message = f'Current balance: ${self.fund}'
+        return message
 
     def vend(self):
         """Dispense the product if there is sufficient stock and funds and
@@ -82,6 +96,29 @@ class VendingMachine:
               Please add $3 more funds.
         """
         "*** YOUR CODE HERE ***"
+        if self.stock > 0:
+            if self.fund > self.price:
+                self.fund -= self.price
+                self.stock -= 1
+                message = f'Here is your {self.product} and ${self.fund} change.'
+                self.fund = 0
+                
+            elif self.fund == self.price:
+                self.fund = 0
+                self.stock -= 1
+                message = f'Here is your {self.product}.'
+            
+            else:
+                message = f'Please add ${self.price - self.fund} more funds.'
+        else:
+            if self.fund > 0:
+                message = f'Nothing left to vend. Please restock. Here is your ${self.fund}.'
+                self.fund = 0
+            else:
+                message = f'Nothing left to vend. Please restock.'
+            
+        return message
+        
 
 
 def store_digits(n):
@@ -104,7 +141,13 @@ def store_digits(n):
     >>> print("Do not use str or reversed!") if any([r in cleaned for r in ["str", "reversed"]]) else None
     """
     "*** YOUR CODE HERE ***"
-
+    link = Link.empty
+    while True:
+        if n == 0:
+            return link
+        num_last = n % 10
+        link = Link(first=num_last, rest=link)
+        n = n // 10
 
 def deep_map_mut(func, s):
     """Mutates a deep link s by replacing each item found with the
@@ -126,8 +169,21 @@ def deep_map_mut(func, s):
     <9 <16> 25 36>
     """
     "*** YOUR CODE HERE ***"
-
-
+    if s.rest == Link.empty:
+        if not isinstance(s.first, Link):
+            s.first = func(s.first)
+        else:
+            deep_map_mut(func, s.first)
+    else:
+        deep_map_mut(func, s.rest)
+        if not isinstance(s.first, Link):
+            s.first = func(s.first)
+        else:
+            deep_map_mut(func, s.first)
+    
+        
+        
+        
 def two_list(vals, counts):
     """
     Returns a linked list according to the two lists that were passed in. Assume
