@@ -1,0 +1,4 @@
+'cumulative_mul-correct', (0, 66)
+'prune_small-correct', (512, 66)
+'delete-correct', (1024, 66)
+'max_path_sum-correct', (1536, 66)
