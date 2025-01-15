@@ -871,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions***   and ***bound method***   . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***    and ***bound method***    . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -1108,12 +1108,12 @@ Call `bool` constructor to see the truth value of an object
    9
    ```
 
+   `len` invokes the `__len__` method of its argument to determine its length.
 
-	`len` invokes the `__len__` method of its argument to determine its length.
+   Python use a sequence's length to determine its truth value, if it does not provide a `__bool__` method. Empty sequences are false, while non-empty sequences are true.
 
-	Python use a sequence's length to determine its truth value, if it does not provide a `__bool__` method. Empty sequences are false, while non-empty sequences are true.
+   `__getitem__` method is invoked by the element selection operator.
 
-	`__getitem__` method is invoked by the element selection operator.
 
 ```py
 >>> 'Go Bears!'[3]
@@ -1124,7 +1124,7 @@ Call `bool` constructor to see the truth value of an object
 
 3. **Callable objects**
 
-   Python allows to define objects that can be "called" like functions by including a `__call__` method. 
+   Python allows to define objects that can be "called" like functions by including a `__call__` method.
 
    ```py
    >>> def make_adder(n):
@@ -1136,8 +1136,8 @@ Call `bool` constructor to see the truth value of an object
    7
    ```
 
+   We can also create a `add_three` using object.
 
-	We can also create a `add_three` using object.
 
 ```py
 >>> class Adder(object):
@@ -1176,7 +1176,7 @@ There might be more than one useful representation for a data object, and we mig
             return self.mul(other)
 ```
 
-This number class does not have an `__init__` method. The purpose of `Number` is not to be instantiated directly, but instead to serve as a superclass of various specific number classes. 
+This number class does not have an `__init__` method. The purpose of `Number` is not to be instantiated directly, but instead to serve as a superclass of various specific number classes.
 
 The `Complex` class inherits from `Number` and describe arithmetic for complex numbers.
 
@@ -1200,13 +1200,13 @@ Object attributes, which are a form of message passing, allows different data ty
 
 For complex arithmetic to be correct, these attributes must be consistent. The rectangular `(real, imag)` and the polar coordinates `(magnitude, angle)` must describe the same point on the complex plane. The `Complex` class implicity defines this interface by determing how these attributes are used to `add` and `mul` complex numbers.
 
-两种不同的complex number class，但是实现了共同的接口（interface），所以两类complex number可以以不同的方式相应同一条消息。  
+两种不同的complex number class，但是实现了共同的接口（interface），所以两类complex number可以以不同的方式相应同一条消息。
 
 **Properties**
 
 The requirement that two or more attribute values maintain a fixed relationship with each other is a new problem. One solution is to store attribute values for only representation and compute the other representation whenever it is needed.
 
-Python can compute attributes on the fly from zero-argument functions. The `@property` decorator allows functions to be called without call expression syntax (paretheses following an expression). 
+Python can compute attributes on the fly from zero-argument functions. The `@property` decorator allows functions to be called without call expression syntax (paretheses following an expression).
 
 The `ComplexRI` class stores `real` and `imag` attributes and computes `magnitude` and `angle` on demand.
 
@@ -1315,7 +1315,7 @@ Rational(1, 6
 
 **Type dispatching**
 
-One way to implement cross-type operations is to select behavior based on the types of the arguments to a function or method. 
+One way to implement cross-type operations is to select behavior based on the types of the arguments to a function or method.
 
 The built-in function `isinstance` takes an object and a class, returns true if the object has a class that either is or inherits from the given class
 
@@ -1399,7 +1399,7 @@ So the interface of `Number` can be writted as:
 
 **Coercion**
 
-The different data types are not completely independent, and there may be ways by which objects of one type may be viewed as being of another type(coercion). 
+The different data types are not completely independent, and there may be ways by which objects of one type may be viewed as being of another type(coercion).
 
 define a coercion function, which transforms a rational number to a complex number with zero imaginary part
 
@@ -1604,7 +1604,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***         returned by a special class of function called ***generator***         function.
+A generator is an ***iterator***          returned by a special class of function called ***generator***          function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -1751,3 +1751,157 @@ s = Stream(1, lambda: Stream(2 + 3, lambda: Stream(9)))
 - `==` : return `True` if the content of two lists are same。
 - `is`: returrn `True` if the address are same.
 - `+`: add another list to the end of the first list.
+
+
+
+## 2.8 Efficiency
+
+A more reliable way to characterize the efficiency of a program is to measure how many times some event occurs, rather than measure the time or memory it consumes.
+
+Use `count` function to compute the calling times of some function.
+
+Function can add attributes dynamically.
+
+```python
+def fib(n):
+    if n == 0:
+        return 0
+    if n == 1:
+        return 1
+    return fib(n - 2) + fib(n - 1)
+
+def count(f):
+    def counted(*args):
+        counted.call_count += 1
+        return f(*args)
+    counted.call_count = 0
+    return counted
+```
+
+```python
+fib = count(fib)
+```
+
+`fib` would call `fib` in the current environment actually.  So when we call new `fib` returned by `count(fib)` , at first `counted.call_count += 1` runs, then the original `fib` would be called. The original `fib` would find `fib` in the current environment and call it.
+
+```python
+fib = count(fib)
+fib(19)
+```
+
+要注意的是，这里的 `fib` 已经不是原先的计算斐波那契数列的函数了，而是我们返回的那个 `counted`。所以流程是：
+
+1. **外层包装函数** **`counted`** **counted 被调用**:
+
+   - `counted.call_count += 1`
+   - 调用原先的 `fib(n)`（在内部，我们可以把它称为原函数，为了不混淆，可以暂时称之为 `original_fib(n)`）
+
+2. **原函数** **`original_fib`** **original_fib(19) 的逻辑**:
+
+   ```python
+   def original_fib(n):
+       if n == 0:
+           return 0
+       if n == 1:
+           return 1
+       return fib(n - 2) + fib(n - 1)  # 注意这里 fib 指向的还是包装后的函数
+   ```
+
+
+		当 `n = 19` 时，会去计算 `original_fib(17) + original_fib(18)`。但是它并不会直接调用 `original_fib(17)`，而是调用“同一个名字的 `fib`”，而这个 `fib` 也就是外层的 `counted`。这样，新的调用流程又会先执行 `counted.call_count += 1`，再去执行 `original_fib`。
+
+		于是，每深入一层递归，就要再调用一次外层的 `counted`，从而让 `call_count` 加 1。
+
+**Space**
+
+In evaluating an expression, the interpreter preserves all **active environments** and all **values and frames referenced by those environments**. An environment is active if it provides the evaluation context for some expression being evaluated. An environment becomes inactive whenever the function call for which its first frame was created finally returns.
+
+When evaluating `fib`, the interpreter only needs to keep track of those nodes that are above the current node in the tree at any point in the computation. The memory used to compute other branches can be reclaimed. So the space required for tree-recursive functions will be proportional to the maximum depth of the tree.
+
+```python
+def count_frames(f):
+    def counted(*args):
+        counted.open_count += 1
+        counted.max_count = max(counted.max_count, counted.open_count)
+        result = f(*args)
+        counted.open_count -= 1
+        return result
+    counted.open_count = 0
+    counted.max_count = 0
+    return counted
+```
+
+use function `count_frames` to compute the maximum number of frames that are ever simultaneously active during the course of computation.
+
+### 2.8.2 Memoization
+
+A memoized function will store the return value for any arguments it has previously received. A second call to `fib(25)` would not re-compute the return value recursively, but instead return the existing one that has already been constructed.
+
+**memoization** can be expressed naturally as a higher-order function, which can also be used as a decorator.
+
+```python
+def memo(f):
+    cache = {}
+    def memoized(n):
+        if n not in cache:
+            cache[n] = f(n)
+        return cache[n]
+    return memoized
+```
+
+```python
+counted_fib = count(fib)
+fib = memo(counted_fib)
+```
+
+### 2.8.3 Orders of Growth
+
+A useful way to analyze a process is to categorization is the **order of growth** of a process.
+
+```python
+from math import sqrt
+def count_factors(n):
+    sqrt_n = sqrt(n)
+    k, factors = 1, 0
+    while k < sqrt_n:
+        if n % k == 0:
+            factors += 2
+        k += 1
+    if k * k == n:
+        factors += 1
+    return factors
+```
+
+The total number of times this process executes the body of the `while` statement is the greatest integer less than $\sqrt{n}$. So the total number of statements executed is $w\cdot \sqrt{n} + v$
+
+**Theta Notation**
+
+$n$is a parameter that measures the size of the input to some process, and let $R(n)$be the amount of some resource that the process requires for an input of size $n$. 
+
+$R(n)$has order growth $\Theta(f(n))$, written $R(n)=\Theta(f(n))$, if there are positive constants $k_1$ and $k_2$ independent of $n$such that:
+
+$$
+k_1 \cdot f(n) \leq R(n) \leq k_2 \cdot f(n)
+$$
+
+```python
+def exp_iter(b, n):
+    result = 1
+    for _ in range(n):
+        result = result * b
+    return result
+    
+    
+def square(x):
+    return x * x
+
+def fast_exp(b, n):
+    if n == 0:
+        return 1
+    if n % 2 == 0:
+        return square(fast_exp(b, n // 2))
+    else:
+        return b * fast_exp(b, n - 1)
+```
+
+The first algorithm `exp_iter(b, n)` has a linear complexity, but the second algorithm only has $\Theta (logn)$growth.
