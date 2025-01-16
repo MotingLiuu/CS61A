@@ -871,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions***    and ***bound method***    . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***     and ***bound method***     . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -1604,7 +1604,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***          returned by a special class of function called ***generator***          function.
+A generator is an ***iterator***           returned by a special class of function called ***generator***           function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -1791,12 +1791,12 @@ fib(19)
 
 要注意的是，这里的 `fib` 已经不是原先的计算斐波那契数列的函数了，而是我们返回的那个 `counted`。所以流程是：
 
-1. **外层包装函数** **`counted`** **counted 被调用**:
+1. **外层包装函数** **`counted`** **counted** **counted 被调用**:
 
    - `counted.call_count += 1`
    - 调用原先的 `fib(n)`（在内部，我们可以把它称为原函数，为了不混淆，可以暂时称之为 `original_fib(n)`）
 
-2. **原函数** **`original_fib`** **original_fib(19) 的逻辑**:
+2. **原函数** **`original_fib`** **original_fib** **original_fib(19) 的逻辑**:
 
    ```python
    def original_fib(n):
@@ -1807,10 +1807,12 @@ fib(19)
        return fib(n - 2) + fib(n - 1)  # 注意这里 fib 指向的还是包装后的函数
    ```
 
+   ````
+    当 `n = 19` 时，会去计算 `original_fib(17) + original_fib(18)`。但是它并不会直接调用 `original_fib(17)`，而是调用“同一个名字的 `fib`”，而这个 `fib` 也就是外层的 `counted`。这样，新的调用流程又会先执行 `counted.call_count += 1`，再去执行 `original_fib`。
+   
+    于是，每深入一层递归，就要再调用一次外层的 `counted`，从而让 `call_count` 加 1。
+   ````
 
-		当 `n = 19` 时，会去计算 `original_fib(17) + original_fib(18)`。但是它并不会直接调用 `original_fib(17)`，而是调用“同一个名字的 `fib`”，而这个 `fib` 也就是外层的 `counted`。这样，新的调用流程又会先执行 `counted.call_count += 1`，再去执行 `original_fib`。
-
-		于是，每深入一层递归，就要再调用一次外层的 `counted`，从而让 `call_count` 加 1。
 
 **Space**
 
@@ -1876,7 +1878,7 @@ The total number of times this process executes the body of the `while` statemen
 
 **Theta Notation**
 
-$n$is a parameter that measures the size of the input to some process, and let $R(n)$be the amount of some resource that the process requires for an input of size $n$. 
+$n$is a parameter that measures the size of the input to some process, and let $R(n)$be the amount of some resource that the process requires for an input of size $n$.
 
 $R(n)$has order growth $\Theta(f(n))$, written $R(n)=\Theta(f(n))$, if there are positive constants $k_1$ and $k_2$ independent of $n$such that:
 
@@ -1905,3 +1907,150 @@ def fast_exp(b, n):
 ```
 
 The first algorithm `exp_iter(b, n)` has a linear complexity, but the second algorithm only has $\Theta (logn)$growth.
+
+
+
+# Chapter 3: Interpreting Computer Programs
+
+`Scheme` programming language is a language with a minimal set of features.
+
+Many interpreters have an elegant common structure: two mutually recursive functions. The first evaluates expressions in environment; The second applies functions to arguments.
+
+These functions are recursive in that they are defined in terms of each other: applying a function requires evaluating the expressions in its body, while evaluating an expression may involve applying one or more functions.
+
+## 3.2 Functional Programming
+
+```scheme
+(if <predicate> <consequent> <alternative>)
+```
+
+**and**
+
+```scheme
+(and <e1> ... <en>)
+```
+
+**or**
+
+```scheme
+(or <e1> ... <en>)
+```
+
+**not**
+
+```scheme
+(not <e>) 
+```
+
+### 3.2.2 Definitions
+
+Values can be named using the `define` special form:
+
+```scheme
+(define pi 3.14)
+(* pi 2)
+```
+
+New functions (called procedures in Scheme) can be defined using a second version of the `define` special form.
+
+```scheme
+(define (square x) (* x x))
+(define (average x y) (/ (+ x y) 2))
+(define (abs x) (if (< x 0) (- x) x))
+```
+
+The general form of a procedure definition is
+
+```scheme
+(define (<name> <formal parameters>) <body>)
+```
+
+An interative procedure for computing square roots using nested definitions and recursion:
+
+```scheme
+(define (sqrt x)
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+(sqrt 9)
+```
+
+Anonymous functions are created using the `lambda` special form. `Lambda` is used to create procedures in the same way as `define`, except that no name is specified for the procedure.
+
+```scheme
+(lambda (<formal-parameters>) <body>)
+```
+
+### 3.2.3 Compound values
+
+```scheme
+(define x (cons 1 2))
+scm> x
+(1 . 2)
+scm> (car x)
+1
+scm> (cdr x)
+2
+```
+
+Recursive lists are also built into the language, using pairs. A special value denoted `nil` or `()` represents the empty list.
+
+```scheme
+(cons 1
+      (cons 2
+            (cons 3
+                  (cons 4 nil))))
+```
+
+whether a list is empty can be determined using the primitive `null?` predicate. Compute `length` and selecting elements:
+
+```scheme
+(define (length items)
+  (if (null? items)
+      0
+      (+ 1 (length (cdr items)))))
+(define (getitem items n)
+  (if (= n 0)
+      (car items)
+      (getitem (cdr items) (- n 1))))
+(define squares (list 1 4 9 16 25))
+```
+
+### 3.2.4 Symbolic Data
+
+A strength of scheme is working with arbitrary symbols as data. In Scheme, refer to the symbols `a` and `b` rather than their values by preceding them with a single quotation mark.
+
+```scheme
+(define a 1)
+(define b 2)
+
+(list a b)
+(1 2)
+(list 'a 'b)
+(a b)
+(l
+(list 'a b)
+(a 2)
+```
+
+In Scheme, any expression that is not evaluated is said to be `quoted`. 
+
+```scheme
+(list `define `list)
+```
+
+Quotation also allows us to type in compound objects
+
+```scheme
+(car '(a b c))
+a
+(cdr '(a b c))
+(b c)
+```
+
