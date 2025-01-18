@@ -2054,3 +2054,17 @@ a
 (b c)
 ```
 
+**Cond Expression**
+
+The `cond` special form can include multiple predicates
+
+```scheme
+(cond
+  (<p1> <e1>)
+  (<p2> <e2>)
+  ...
+  (<pn> <en>)
+  (else <else-expression>)
+  )
+```
+
