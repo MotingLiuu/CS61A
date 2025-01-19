@@ -871,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions***     and ***bound method***     . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***      and ***bound method***      . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -1604,7 +1604,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***           returned by a special class of function called ***generator***           function.
+A generator is an ***iterator***            returned by a special class of function called ***generator***            function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -1791,12 +1791,12 @@ fib(19)
 
 要注意的是，这里的 `fib` 已经不是原先的计算斐波那契数列的函数了，而是我们返回的那个 `counted`。所以流程是：
 
-1. **外层包装函数** **`counted`** **counted** **counted 被调用**:
+1. **外层包装函数** **`counted`** **counted** **counted** **counted 被调用**:
 
    - `counted.call_count += 1`
    - 调用原先的 `fib(n)`（在内部，我们可以把它称为原函数，为了不混淆，可以暂时称之为 `original_fib(n)`）
 
-2. **原函数** **`original_fib`** **original_fib** **original_fib(19) 的逻辑**:
+2. **原函数** **`original_fib`** **original_fib** **original_fib** **original_fib(19) 的逻辑**:
 
    ```python
    def original_fib(n):
@@ -2039,7 +2039,7 @@ A strength of scheme is working with arbitrary symbols as data. In Scheme, refer
 (a 2)
 ```
 
-In Scheme, any expression that is not evaluated is said to be `quoted`. 
+In Scheme, any expression that is not evaluated is said to be `quoted`.
 
 ```scheme
 (list `define `list)
@@ -2067,4 +2067,110 @@ The `cond` special form can include multiple predicates
   (else <else-expression>)
   )
 ```
+
+## 3.3 Exceptions
+
+Python interpreter raises an exception each time it detect an error in an expression or statement. User can also raise exceptions with `raise` and `assert` statements
+
+**Raising exceptions**
+
+An exception is a object instance with a class that inherits from the `BaseExpection` class.
+
+Any exception instance can be raised with the `raise` statement.
+
+```python
+>>> raise Exception('An error occurred')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+Exception: an error occurred
+```
+
+When an exception is raised, no further statements in the current block of code are executed. Unless the exception is ***handled*** in addition, the interpreter will print a ***stack backtrace*** , which is a structured block of text that describes the nested set of active function calls in the branch of execution in which the exception was raised. `<stdin>` 
+
+indicates that the exception was raised by the user in an interactive session, rather than from code in a file.
+
+**Handling exception**
+
+use `try`statement
+
+```python
+try:
+    <try suite>
+except <exception class> as <name>:
+    <except suite>
+```
+
+The `<try suite>` is executed immediately. Suites of the `execpt` clauses are only executed when an exception is raised during the course of executing the `<try suite>` , the identifier 
+
+`<name>` is bound to the execption object that was raised.
+
+When an exception is raised, control jumps directly to the body of the `<except suite>` of the most recent try statement that handles that type of exception.
+
+```python
+>>> def invert(x):
+        result = 1/x  # Raises a ZeroDivisionError if x is 0
+        print('Never printed if x is 0')
+        return result
+>>> def invert_safe(x):
+        try:
+            return invert(x)
+        except ZeroDivisionError as e:
+            return str(e)
+            
+>>> invert_safe(2)
+Never printed if x is 0
+0.5
+>>> invert_safe(0)
+'division by zero'
+```
+
+### 3.3.1 Exception Object
+
+```python
+>>> class IterImproveError(Exception):
+        def __init__(self, last_guess):
+            self.last_guess = last_guess
+```
+
+## 3.4 Interpreters for Languages with Combination
+
+### 3.4.2 Expression Trees
+
+A call expression is a Scheme list with a first element followed by zero or more operand expressions.
+
+**Scheme Pairs**
+
+List are nested pairs, but not all pairs are lists.
+
+The empty list is represented by an object called `nil`, which is an instance of the class `nil`.
+
+Assume that only one `nil` instance will ever be created.
+
+**Nested Lists**
+
+### 3.4.3 Paring Expression
+
+Generating expression trees. 
+
+Two components: lexical analyzer and syntactic analyzer.
+
+1. The ***lexical analyzer*** partitions the input string into tokens.
+2. The ***syntactic analyzer*** constructs an expression tree from the sequence of tokens.
+
+***Lexical analysis***
+
+The tokenizer is a function called `tokenize_line` in scheme_tokens.
+
+```python
+>>> tokenize_line('(+ 1 (* 2.3 45))')
+['(', '+', 1, '(', '*', 2.3, 45, ')', ')']
+```
+
+***Syntactic analysis***
+
+A tree-recursive process.
+
+The `scheme_read` function expects its input `src` to be a Buffer instance that gives access to a sequence of tokens. A Buffer, defined in the `buffer` module, collects tokens that span multiple lines into a single object that can be analyzed syntactically.
+
+The `scheme_read` function first checks for various base cases, including empty input (which raises an end-of-file exception, called `EOFError` in Python) and primitive expressions. A recursive call to `read_tail` is invoked whenever a ( token indicates the beginning of a list.
 

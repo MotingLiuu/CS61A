@@ -323,3 +323,4 @@ with open('eg.jpg', 'rb') as file:
 with open('eg.bin', 'wb') as file:
     file.write(b'\x00\x01\x02\x03')
 ```
+
