@@ -871,7 +871,7 @@ getattr(account1, `balance`)
 
 **Methods and functions**
 
-Python distinguishes between ***functions***      and ***bound method***      . A bound method value is already associated with its first argument
+Python distinguishes between ***functions***       and ***bound method***       . A bound method value is already associated with its first argument
 
 As an attribute of a class, a method is just a function, but as an attribute of an instance, it is a bound mehtod.
 
@@ -1604,7 +1604,7 @@ finally:
 
 Generators allow us to define more complicated iterations.
 
-A generator is an ***iterator***            returned by a special class of function called ***generator***            function.
+A generator is an ***iterator***             returned by a special class of function called ***generator***             function.
 
 Generator functions are distinguished from regular functions in that rather than containing `return` statements in their body, they use `yield` statement to return elements of a series.
 
@@ -1791,12 +1791,12 @@ fib(19)
 
 要注意的是，这里的 `fib` 已经不是原先的计算斐波那契数列的函数了，而是我们返回的那个 `counted`。所以流程是：
 
-1. **外层包装函数** **`counted`** **counted** **counted** **counted 被调用**:
+1. **外层包装函数** **`counted`** **counted** **counted** **counted** **counted 被调用**:
 
    - `counted.call_count += 1`
    - 调用原先的 `fib(n)`（在内部，我们可以把它称为原函数，为了不混淆，可以暂时称之为 `original_fib(n)`）
 
-2. **原函数** **`original_fib`** **original_fib** **original_fib** **original_fib(19) 的逻辑**:
+2. **原函数** **`original_fib`** **original_fib** **original_fib** **original_fib** **original_fib(19) 的逻辑**:
 
    ```python
    def original_fib(n):
@@ -2085,7 +2085,7 @@ Traceback (most recent call last):
 Exception: an error occurred
 ```
 
-When an exception is raised, no further statements in the current block of code are executed. Unless the exception is ***handled*** in addition, the interpreter will print a ***stack backtrace*** , which is a structured block of text that describes the nested set of active function calls in the branch of execution in which the exception was raised. `<stdin>` 
+When an exception is raised, no further statements in the current block of code are executed. Unless the exception is ***handled***  in addition, the interpreter will print a ***stack backtrace***  , which is a structured block of text that describes the nested set of active function calls in the branch of execution in which the exception was raised. `<stdin>`
 
 indicates that the exception was raised by the user in an interactive session, rather than from code in a file.
 
@@ -2100,7 +2100,7 @@ except <exception class> as <name>:
     <except suite>
 ```
 
-The `<try suite>` is executed immediately. Suites of the `execpt` clauses are only executed when an exception is raised during the course of executing the `<try suite>` , the identifier 
+The `<try suite>` is executed immediately. Suites of the `execpt` clauses are only executed when an exception is raised during the course of executing the `<try suite>` , the identifier
 
 `<name>` is bound to the execption object that was raised.
 
@@ -2150,14 +2150,14 @@ Assume that only one `nil` instance will ever be created.
 
 ### 3.4.3 Paring Expression
 
-Generating expression trees. 
+Generating expression trees.
 
 Two components: lexical analyzer and syntactic analyzer.
 
-1. The ***lexical analyzer*** partitions the input string into tokens.
-2. The ***syntactic analyzer*** constructs an expression tree from the sequence of tokens.
+1. The ***lexical analyzer***  partitions the input string into tokens.
+2. The ***syntactic analyzer***  constructs an expression tree from the sequence of tokens.
 
-***Lexical analysis***
+***Lexical analysis*** 
 
 The tokenizer is a function called `tokenize_line` in scheme_tokens.
 
@@ -2166,7 +2166,7 @@ The tokenizer is a function called `tokenize_line` in scheme_tokens.
 ['(', '+', 1, '(', '*', 2.3, 45, ')', ')']
 ```
 
-***Syntactic analysis***
+***Syntactic analysis*** 
 
 A tree-recursive process.
 
@@ -2174,3 +2174,59 @@ The `scheme_read` function expects its input `src` to be a Buffer instance
 
 The `scheme_read` function first checks for various base cases, including empty input (which raises an end-of-file exception, called `EOFError` in Python) and primitive expressions. A recursive call to `read_tail` is invoked whenever a ( token indicates the beginning of a list.
 
+### 3.4.4 Calculator Evaluation
+
+The only two legal syntactic forms of expressions are numbers and call expressions, which are `Pair` instances representing well-formed Scheme lists. Numbers are ***self-evaluating*** , they can be returned directly from `calc_eval`. Call expressions require function application.
+
+```python
+>>> def calc_eval(exp):
+        """Evaluate a Calculator expression."""
+        if type(exp) in (int, float):
+            return simplify(exp)
+        elif isinstance(exp, Pair):
+            arguments = exp.second.map(calc_eval)
+            return simplify(calc_apply(exp.first, arguments))
+        else:
+            raise TypeError(exp + ' is not a number or call expression')
+```
+
+If `type(exp)` is self-evaluating types(int, float). Then return `simplify(exp)`. If `type(exp)` is a Pair, then the arguments of current expression are `calc_eval(exp.second)` .
+
+```python
+>>> def calc_apply(operator, args):
+        """Apply the named operator to a list of args."""
+        if not isinstance(operator, str):
+            raise TypeError(str(operator) + ' is not a symbol')
+        if operator == '+':
+            return reduce(add, args, 0)
+        elif operator == '-':
+            if len(args) == 0:
+                raise TypeError(operator + ' requires at least 1 argument')
+            elif len(args) == 1:
+                return -args.first
+            else:
+                return reduce(sub, args.second, args.first)
+        elif operator == '*':
+            return reduce(mul, args, 1)
+        elif operator == '/':
+            if len(args) == 0:
+                raise TypeError(operator + ' requires at least 1 argument')
+            elif len(args) == 1:
+                return 1/args.first
+            else:
+                return reduce(truediv, args.second, args.first)
+        else:
+            raise TypeError(operator + ' is an unknown operator')
+```
+
+**Read-eval-print loops**
+
+```python
+>>> def read_eval_print_loop():
+        """Run a read-eval-print loop for calculator."""
+        while True:
+            src = buffer_input()
+            while src.more_on_line:
+                expression = scheme_read(src)
+                print(calc_eval(expression))
+```
