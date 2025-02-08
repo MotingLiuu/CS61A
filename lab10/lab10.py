@@ -13,21 +13,25 @@ def calc_eval(exp):
     >>> calc_eval(Pair("+", Pair(1, Pair(2, nil))))
     3
     """
+    print(f'DEBUG: {bindings}')
+    
     if isinstance(exp, Pair):
-        operator = ____________ # UPDATE THIS FOR Q2, e.g (+ 1 2), + is the operator
-        operands = ____________ # UPDATE THIS FOR Q2, e.g (+ 1 2), 1 and 2 are operands
+        operator = exp.first # UPDATE THIS FOR Q2, e.g (+ 1 2), + is the operator
+        operands = exp.rest # UPDATE THIS FOR Q2, e.g (+ 1 2), 1 and 2 are operands
+        print(f'DEBUG: exp:{exp}')
+        print(f'DEBUG: operator: {operator} operands:{operands}')
         if operator == 'and': # and expressions
             return eval_and(operands)
         elif operator == 'define': # define expressions
             return eval_define(operands)
         else: # Call expressions
-            return calc_apply(___________, ___________) # UPDATE THIS FOR Q2, what is type(operator)?
+            return calc_apply(calc_eval(operator), operands) # UPDATE THIS FOR Q2, what is type(operator)?
     elif exp in OPERATORS:   # Looking up procedures
         return OPERATORS[exp]
     elif isinstance(exp, int) or isinstance(exp, bool):   # Numbers and booleans
         return exp
-    elif _________________: # CHANGE THIS CONDITION FOR Q4 where are variables stored?
-        return _________________ # UPDATE THIS FOR Q4, how do you access a variable?
+    elif exp in bindings: # CHANGE THIS CONDITION FOR Q4 where are variables stored?
+        return bindings[exp] # UPDATE THIS FOR Q4, how do you access a variable?
 
 def calc_apply(op, args):
     return op(args)
@@ -52,6 +56,13 @@ def floor_div(args):
     20
     """
     "*** YOUR CODE HERE ***"
+    args = args.map(calc_eval)
+    result = args.first
+    divisor = args.rest
+    while divisor != nil:
+        result = result // divisor.first
+        divisor = divisor.rest
+    return result
 
 scheme_t = True   # Scheme's #t
 scheme_f = False  # Scheme's #f
@@ -74,6 +85,15 @@ def eval_and(expressions):
     True
     """
     "*** YOUR CODE HERE ***"
+    if expressions is nil:
+        return scheme_t
+    elif len(expressions) == 1:
+        return calc_eval(expressions.first)
+    else:
+        if calc_eval(expressions.first) is scheme_f:
+            return scheme_f
+        else:
+            return eval_and(expressions.rest)
 
 bindings = {}
 
@@ -93,6 +113,9 @@ def eval_define(expressions):
     2
     """
     "*** YOUR CODE HERE ***"
+    print(f'DEBUG: {expressions}')
+    bindings[expressions.first] = calc_eval(expressions.rest.first)
+    return expressions.first
 
 OPERATORS = { "//": floor_div, "+": addition, "-": subtraction, "*": multiplication, "/": division }
 
